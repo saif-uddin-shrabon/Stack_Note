@@ -13,7 +13,9 @@ import com.algostack.stacknote.databinding.FragmentLoginBinding
 import com.algostack.stacknote.model.UserResponse
 import com.algostack.stacknote.model.userRequest
 import com.algostack.stacknote.utils.NetworkResult
+import com.algostack.stacknote.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -21,6 +23,9 @@ class LoginFragment : Fragment() {
     var _binding : FragmentLoginBinding ?= null
     private val binding get() = _binding!!
     private val authViewModel by viewModels<AuthViewModel> (  )
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
 
     override fun onCreateView(
@@ -79,6 +84,7 @@ class LoginFragment : Fragment() {
             binding.progressBar.isVisible = false
             when(it){
                 is NetworkResult.Success -> {
+                    tokenManager.saveToken(it.data!!.token)
                     findNavController().navigate(R.id.action_loginFragment2_to_mainFragment2)
                 }
                 is NetworkResult.Error -> {

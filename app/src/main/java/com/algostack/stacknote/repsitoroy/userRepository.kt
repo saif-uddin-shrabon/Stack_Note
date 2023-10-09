@@ -9,7 +9,10 @@ import com.algostack.stacknote.model.userRequest
 import com.algostack.stacknote.utils.Constants.TAG
 import com.algostack.stacknote.utils.NetworkResult
 import org.json.JSONObject
+import retrofit2.HttpException
 import retrofit2.Response
+import java.io.IOException
+import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
 class userRepository @Inject constructor (private val userApi: UserApi) {
@@ -23,11 +26,19 @@ class userRepository @Inject constructor (private val userApi: UserApi) {
 
         _userRespronseLiveData.postValue(NetworkResult.Loading())
 
-        val response = userApi.signup(userRequest)
-       // Log.d(TAG, response.body().toString())
-        val responseBody = response.body()?.toString()
-        Log.d(TAG, "Response Body: $responseBody")
-        handleResponse(response)
+        try {
+            val response = userApi.signup(userRequest)
+            // Log.d(TAG, response.body().toString())
+//        val responseBody = response.body()?.toString()
+//        Log.d(TAG, "Response Body: $responseBody")
+            handleResponse(response)
+        }catch (e: IOException) {
+            _userRespronseLiveData.postValue(NetworkResult.Error("No internet connection"))
+        } catch (e: TimeoutException) {
+            _userRespronseLiveData.postValue(NetworkResult.Error("Request timed out"))
+        }catch (e: HttpException){
+            _userRespronseLiveData.postValue(NetworkResult.Error("Unexpected response"))
+        }
 
     }
 
@@ -35,8 +46,16 @@ class userRepository @Inject constructor (private val userApi: UserApi) {
     suspend fun loginUser(userRequest: userRequest){
         _userRespronseLiveData.postValue(NetworkResult.Loading())
 
-        val response = userApi.signin(userRequest)
-        handleResponse(response)
+        try {
+            val response = userApi.signin(userRequest)
+            handleResponse(response)
+        } catch (e: IOException) {
+            _userRespronseLiveData.postValue(NetworkResult.Error("No internet connection"))
+        } catch (e: TimeoutException) {
+            _userRespronseLiveData.postValue(NetworkResult.Error("Request timed out"))
+        }catch (e: HttpException){
+            _userRespronseLiveData.postValue(NetworkResult.Error("Unexpected response"))
+        }
     }
 
     private fun handleResponse(response: Response<UserResponse>) {
